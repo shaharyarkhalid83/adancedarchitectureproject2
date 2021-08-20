@@ -1,7 +1,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "timer.h"
+#include "newtimer.h"
 
 #define BLOCK_SIZE 256
 #define SOFTENING 1e-9f
