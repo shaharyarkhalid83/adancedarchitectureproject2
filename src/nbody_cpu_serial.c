@@ -5,6 +5,15 @@
 
 #define SOFTENING 1e-9f
 
+
+#ifdef PAPI
+  #include<string.h>
+  #include<papi.h>
+#endif
+
+void handle_error(int errcode);
+
+
 typedef struct { float x, y, z, vx, vy, vz; } Body;
 
 void randomizeBodies(float *data, int n) {
@@ -33,8 +42,24 @@ void bodyForce(Body *p, float dt, int n) {
 }
 
 int main(const int argc, const char** argv) {
+  #ifdef PAPI
+  double cycles_per_sec;
+  int num_events, n, ret;
+  char *event_name;
+  int Events[] = {PAPI_SP_OPS};
+  long_long *values;               
+  long_long ts, tf;                
+
+  num_events = sizeof(Events)/sizeof(int);
+  //n = atoi(argv[1]);
+  event_name = (char *) malloc(128);
+  values = (long_long *) malloc(num_events*sizeof(long_long));
+  //srand(time(NULL)); 
+
+  #endif
+
   FILE *datafile;  
-  int nBodies = 3000;
+  int nBodies = 10000;
   int nthreads = 1;
 
   if (argc > 1) nBodies = atoi(argv[1]);
@@ -80,5 +105,54 @@ int main(const int argc, const char** argv) {
   double avgTime = totalTime / (double)(nIters-1); 
 
   printf("avgTime: %f   totTime: %f \n", avgTime, totalTime);
+
+
+
+  #ifdef PAPI
+  
+  if ((ret=PAPI_start_counters(Events, num_events)) != PAPI_OK)
+  handle_error(ret);
+  ts = PAPI_get_real_usec();
+ 
+  bodyForce(p, dt, nBodies);           // compute interbody forces
+  for (int i = 0 ; i < nBodies; i++) { // integrate position
+    p[i].x += p[i].vx*dt;
+    p[i].y += p[i].vy*dt;
+    p[i].z += p[i].vz*dt;
+
+  }
+  tf = PAPI_get_real_usec();        /* end timer */
+
+  if ((ret=PAPI_stop_counters(values, num_events)) != PAPI_OK)
+    handle_error(ret);
+
+
+  for (int i=0;i<num_events;++i){       /* print name/value of each event counter */
+    PAPI_event_code_to_name(Events[i],event_name);
+    printf("%s:%lld\n", event_name, values[i]);
+    if (strcmp(event_name,"PAPI_TOT_CYC") == 0){
+      cycles_per_sec = (double) values[i]/(double) ((tf-ts)*1.e-6);
+      printf("cycles per second: %e\n", cycles_per_sec);
+    }
+  }
+  printf("tot time: %e n", (tf-ts)/1.e6);
+//  printf("L1 hit rate: %f\n", 1. - ((float) values[1])/((float) values[0]));  
+
+#endif
+
+
+
+
   free(buf);
 }
+
+
+
+
+void handle_error(int errcode){
+  char error_str[PAPI_MAX_STR_LEN];
+
+  fprintf(stderr,"PAPI_error in call to create_eventset %d: %s\n",errcode,error_str);
+  exit(1);
+}
+

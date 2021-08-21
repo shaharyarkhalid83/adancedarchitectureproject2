@@ -36,7 +36,7 @@ void bodyForce(Body *p, float dt, int n) {
 
 int main(const int argc, const char** argv) {
   FILE *datafile;  
-  int nBodies = 30000;
+  int nBodies = 10000;
   int nthreads = 2;
 
   if (argc > 1) nBodies = atoi(argv[1]);
