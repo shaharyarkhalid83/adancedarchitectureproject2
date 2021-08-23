@@ -13,3 +13,6 @@ nvcc -Xcompiler -fopenmp ./src/nbody_gpu4.cu -o nbody_gpu4 -lm
 
 gcc -fopenmp -DOMP -O2 -std=c11 -c  ./src/nbody_cpu_serial2.c
 gcc -fopenmp -O2 -o nbody_cpu_serial2 nbody_cpu_serial2.o timer.o -lm -lpapi
+gcc -fopenmp -DPAPI -O2 -std=c11 -c  ./src/nbody_cpu_multicore2.c
+gcc -fopenmp -O2 -o nbody_cpu_multicore2 nbody_cpu_multicore2.o timer.o -lm -lpapi
+
