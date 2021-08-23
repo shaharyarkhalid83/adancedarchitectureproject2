@@ -41,7 +41,7 @@ void bodyForce(float4 *p, float4 *v, float dt, int n) {
 
 int main(const int argc, const char** argv) {
   
-  int nBodies = 30000;
+  int nBodies = 100000;
   if (argc > 1) nBodies = atoi(argv[1]);
   
   const float dt = 0.01f; // time step
