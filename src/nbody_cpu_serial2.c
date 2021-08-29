@@ -53,22 +53,19 @@ int main(const int argc, const char** argv) {
   long_long ts, tf;                
 
   num_events = sizeof(Events)/sizeof(int);
-  //n = atoi(argv[1]);
   event_name = (char *) malloc(128);
   values = (long_long *) malloc(num_events*sizeof(long_long));
-  //srand(time(NULL)); 
 
   #endif
 
   FILE *datafile;  
   int nBodies = 10000;
-  int nthreads = 1;
+  int nIters = 20;
 
   if (argc > 1) nBodies = atoi(argv[1]);
-  if (argc > 2) nthreads = atoi(argv[2]);
+  if (argc > 2) nIters = atoi(argv[2]);
 
   const float dt = 0.01f; // time step
-  const int nIters = 20;  // simulation iterations
 
   int bytes = nBodies*sizeof(Body);
   float *buf = (float*)malloc(bytes);
@@ -78,18 +75,15 @@ int main(const int argc, const char** argv) {
 
   double tStartLoop = 0.0;
   double tEndLoop = 0.0;
+  double loopTime  = 0.0;
 
   datafile = fopen("nbody.dat","w");
   fprintf(datafile,"%d %d %d\n", nBodies, nIters, 0);
 
-  /* ------------------------------*/
-  /*     MAIN LOOP                 */
-  /* ------------------------------*/
+
   for (int iter = 1; iter <= nIters; iter++) {
     printf("iteration:%d\n", iter);
     
-    //StartTimer();
-
     tStartLoop = GetTimer() / 1000.0;
 
     bodyForce(p, dt, nBodies);           // compute interbody forces
@@ -101,18 +95,12 @@ int main(const int argc, const char** argv) {
       p[i].y += p[i].vy*dt;
       p[i].z += p[i].vz*dt;
     }
-
-   // const double tElapsed = GetTimer() / 1000.0;
-   // if (iter > 1) {                      // First iter is warm up
-    //  totalTime += tElapsed; 
-   // }
+                 
+    loopTime += tEndLoop - tStartLoop; 
+   
   }
   
   fclose(datafile);
-  //double avgTime = totalTime / (double)(nIters-1); 
-
-  //printf("avgTime: %f   totTime: %f \n", avgTime, totalTime);
-
 
 
   #ifdef PAPI
@@ -143,14 +131,13 @@ int main(const int argc, const char** argv) {
     }
   }
   printf("tot time: %e n", (tf-ts)/1.e6);
-//  printf("L1 hit rate: %f\n", 1. - ((float) values[1])/((float) values[0]));  
+
 
 #endif
 
 
   free(buf);
-   const double tEndTime = GetTimer() / 1000.0;
-  double loopTime = tEndLoop-tStartLoop;
+  const double tEndTime = GetTimer() / 1000.0;
   printf("percent of time in bodyForce: %f   \n", loopTime/tEndTime);
 }
 
@@ -164,5 +151,6 @@ void handle_error(int errcode){
   exit(1);
 }
 #endif
+
 
 

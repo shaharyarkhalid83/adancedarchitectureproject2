@@ -15,7 +15,9 @@ void randomizeBodies(float *data, int n) {
 }
 
 void bodyForce(Body *p, float dt, int n) {
+  
 #pragma omp parallel for schedule(dynamic)
+//#pragma omp parallel for schedule(static)
   for (int i = 0; i < n; i++) { 
     float Fx = 0.0f; float Fy = 0.0f; float Fz = 0.0f;
 
@@ -36,14 +38,15 @@ void bodyForce(Body *p, float dt, int n) {
 
 int main(const int argc, const char** argv) {
   FILE *datafile;  
-  int nBodies = 10000;
-  int nthreads = 2;
+  int nBodies = 100000;
+  int nthreads = 28;
+  int nIters = 20; 
 
   if (argc > 1) nBodies = atoi(argv[1]);
-  if (argc > 2) nthreads = atoi(argv[2]);
+  if (argc > 2) nIters = atoi(argv[2]);
+  if (argc > 3) nthreads = atoi(argv[3]);
 
   const float dt = 0.01f; // time step
-  const int nIters = 20;  // simulation iterations
 
   int bytes = nBodies*sizeof(Body);
   float *buf = (float*)malloc(bytes);

@@ -36,15 +36,17 @@ void bodyForce(Body *p, float dt, int n) {
 
 int main(const int argc, const char** argv) {
   StartTimer(); 
+
   FILE *datafile;  
-  int nBodies = 10000;
-  int nthreads = 2;
+  int nBodies = 100000;
+  int nIters = 20;
+  int nthreads = 28;
 
   if (argc > 1) nBodies = atoi(argv[1]);
-  if (argc > 2) nthreads = atoi(argv[2]);
+  if (argc > 2) nIters = atoi(argv[2]);
+  if (argc > 3) nthreads = atoi(argv[3]);
 
   const float dt = 0.01f; // time step
-  const int nIters = 20;  // simulation iterations
 
   int bytes = nBodies*sizeof(Body);
   float *buf = (float*)malloc(bytes);
@@ -55,16 +57,16 @@ int main(const int argc, const char** argv) {
 
   double tStartLoop = 0.0;
   double tEndLoop = 0.0;
+  double loopTime  = 0.0;
 
-  /* ------------------------------*/
-  /*     MAIN LOOP                 */
-  /* ------------------------------*/
+
   for (int iter = 1; iter <= nIters; iter++) {
     printf("iteration:%d\n", iter);
     
     tStartLoop = GetTimer() / 1000.0;
     bodyForce(p, dt, nBodies);           // compute interbody forces
     tEndLoop = GetTimer() / 1000.0;
+    loopTime += tEndLoop - tStartLoop; 
 
     for (int i = 0 ; i < nBodies; i++) { // integrate position
       p[i].x += p[i].vx*dt;
@@ -74,7 +76,7 @@ int main(const int argc, const char** argv) {
   }
   free(buf);
   const double tEndTime = GetTimer() / 1000.0;
-  double loopTime = tEndLoop-tStartLoop;
   printf("percent of time in bodyForce: %f   \n", loopTime/tEndTime);
 }
+
 

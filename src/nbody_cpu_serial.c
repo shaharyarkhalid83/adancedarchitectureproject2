@@ -42,11 +42,16 @@ void bodyForce(Body *p, float dt, int n) {
 }
 
 int main(const int argc, const char** argv) {
-  #ifdef PAPI
+  
+#ifdef PAPI
   double cycles_per_sec;
   int num_events, n, ret;
   char *event_name;
-  int Events[] = {PAPI_SP_OPS};
+  int Events[] = {PAPI_L1_DCM};
+  //int Events[] = {PAPI_TLB_DM};
+  //int Events[] = {PAPI_SP_OPS};
+  //int Events[] = {PAPI_L3_DCA, PAPI_L3_LDM};
+  //int Events[] = {PAPI_BR_CN, PAPI_BR_MSP};
   long_long *values;               
   long_long ts, tf;                
 
@@ -59,14 +64,13 @@ int main(const int argc, const char** argv) {
   #endif
 
   FILE *datafile;  
-  int nBodies = 10000;
-  int nthreads = 1;
+  int nBodies = 100000;
+  int nIters = 20;  // simulation iterations
 
   if (argc > 1) nBodies = atoi(argv[1]);
-  if (argc > 2) nthreads = atoi(argv[2]);
+  if (argc > 2) nIters = atoi(argv[2]);
 
   const float dt = 0.01f; // time step
-  const int nIters = 20;  // simulation iterations
 
   int bytes = nBodies*sizeof(Body);
   float *buf = (float*)malloc(bytes);
@@ -115,12 +119,15 @@ int main(const int argc, const char** argv) {
   ts = PAPI_get_real_usec();
  
   bodyForce(p, dt, nBodies);           // compute interbody forces
-  for (int i = 0 ; i < nBodies; i++) { // integrate position
+  
+  for (int i = 0 ; i < nBodies; i++) { 
     p[i].x += p[i].vx*dt;
     p[i].y += p[i].vy*dt;
     p[i].z += p[i].vz*dt;
-
   }
+
+
+
   tf = PAPI_get_real_usec();        /* end timer */
 
   if ((ret=PAPI_stop_counters(values, num_events)) != PAPI_OK)
@@ -136,6 +143,7 @@ int main(const int argc, const char** argv) {
     }
   }
   printf("tot time: %e n", (tf-ts)/1.e6);
+
 //  printf("L1 hit rate: %f\n", 1. - ((float) values[1])/((float) values[0]));  
 
 #endif
