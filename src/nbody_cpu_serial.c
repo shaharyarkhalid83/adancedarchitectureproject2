@@ -25,7 +25,6 @@ void randomizeBodies(float *data, int n) {
 void bodyForce(Body *p, float dt, int n) {
   for (int i = 0; i < n; i++) { 
     float Fx = 0.0f; float Fy = 0.0f; float Fz = 0.0f;
-
     for (int j = 0; j < n; j++) {
       float dx = p[j].x - p[i].x;
       float dy = p[j].y - p[i].y;
@@ -33,7 +32,8 @@ void bodyForce(Body *p, float dt, int n) {
       float distSqr = dx*dx + dy*dy + dz*dz + SOFTENING;
       float invDist = 1.0f / sqrtf(distSqr);
       float invDist3 = invDist * invDist * invDist;
-
+      Fx += Fx;
+      Fx = Fx/2.0;
       Fx += dx * invDist3; Fy += dy * invDist3; Fz += dz * invDist3;
     }
 
@@ -47,9 +47,9 @@ int main(const int argc, const char** argv) {
   double cycles_per_sec;
   int num_events, n, ret;
   char *event_name;
-  int Events[] = {PAPI_L1_DCM};
+  //int Events[] = {PAPI_L1_DCM};
   //int Events[] = {PAPI_TLB_DM};
-  //int Events[] = {PAPI_SP_OPS};
+ int Events[] = {PAPI_L1_DCM, PAPI_SP_OPS};
   //int Events[] = {PAPI_L3_DCA, PAPI_L3_LDM};
   //int Events[] = {PAPI_BR_CN, PAPI_BR_MSP};
   long_long *values;               
